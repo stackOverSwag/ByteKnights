@@ -187,7 +187,7 @@ public class Parser {
         this.level = level;
         this.labels = new HashMap<>();
         this.code = new ArrayList<>();
-        this.curline = 0;
+        this.curline = 1;
         this.exa = e;
 
         String[] temp = code.split("\n");
@@ -259,6 +259,7 @@ public class Parser {
                 if (!(mline.size() == 2)) {
                     throw new IllegalArgumentException("Mark got more than 2 arguments");
                 }
+                
                 addLabel(mline.get(1));
 
             } else if (!Commands.contains(firstElem) && mline.get(1) == "MARK") {
@@ -307,6 +308,10 @@ public class Parser {
     }
 
     public void addLabel(String label) {
+
+        if(this.Commands.contains(label)) {
+            throw new IllegalArgumentException("label cannot be a command");
+        }
 
         if (this.labels.containsKey(mline.get(1))) {
             // do we even need to throw an error here?
@@ -376,7 +381,7 @@ public class Parser {
         else if (o instanceof Files) {
             Files f = (Files) o;
             if (f.iter.hasNext()) {
-                n = Integer.parseInt(rg.iter.next());
+                n = Integer.parseInt(f.iter.next());
             } else {
                 throw new IllegalArgumentException("The File does not have a next value");
             }
@@ -391,7 +396,7 @@ public class Parser {
             } else if (S.equals("M")) {
                 n = this.exa.getM();
             } else {
-                n = StrinString.valueOf(S);
+                n = String.valueOf(S);
             }
         }
 
@@ -421,7 +426,9 @@ public class Parser {
         int val1 = convToInt(args.get(0)), val2 = convToInt(args.get(1)), res;
         String resReg;
 
-        if (!(args.get(2) instanceof String)) {
+        ArrayList<String> numbers = new ArrayList<>("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+
+        if (numbers.contains(args.get(2).substring(0, 1))) { 
             throw new IllegalArgumentException(
                     "Arithmetic command destination argument isn't a String (cannot be resolved to exa Register)");
         }
@@ -451,7 +458,9 @@ public class Parser {
         resReg = (String) args.get(2);
         this.curline += 1;
         if (!setRegister(resReg, res)) {
-            throw new IllegalArgumentException("Register not found");
+            if(!setFiles(resReg, res)) {
+                throw new IllegalArgumentException("Register not found");
+            }
         }
     }
 
