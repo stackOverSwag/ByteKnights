@@ -218,24 +218,104 @@ public class Parser {
      * verifying any unknown command's existence in labels (the ArrayList
      * which contains all the labels).
      */
+    public void MARK(String label) {
+        for (String key : this.labels.keySet()) {
+            if (label == key)
+                throw new IllegalArgumentException("label already exists");
+        }
+
+        if (this.Commands.contains(label)) {
+            throw new IllegalArgumentException("label cannot be a command");
+        }
+
+        int tempcurline = 1; // used to track the current line iterated
+        for (ArrayList<String> codesubarray : this.code) { // iterating over every line of code
+            if (label == codesubarray.get(0)) { // label found!
+                if (labels.containsKey(label)) {
+                    throw new IllegalArgumentException("label was referenced earlier");
+                }
+                this.labels.put(label, tempcurline);
+            }
+            tempcurline++;
+        }
+
+        if (!labels.containsKey(label)) {
+            throw new IllegalArgumentException("label not referenced");
+        }
+
+        this.curline += 1;
+        // label was found to be unique or nonexistant
+    }
 
     public void start() {
+        String firstElem;
+        // Step 1: start by going through searching all the "MARK myL" and "myL1 MARK
+        // myL2" and add labels to the list of labels
+        for (ArrayList<String> mline : this.code) { // markline
 
+            firstElem = mline.get(0);
+
+            if (firstElem == "MARK") {
+                if (!(mline.size() == 2)) {
+                    throw new IllegalArgumentException("Mark got more than 2 arguments");
+                }
+                addLabel(mline.get(1));
+
+            } else if (!Commands.contains(firstElem) && mline.get(1) == "MARK") {
+                if (!(mline.size() == 3)) {
+                    throw new IllegalArgumentException("Mark got more than 2 arguments");
+                }
+                addLabel(mline.get(2));
+            }
+
+            this.curline += 1;
+        }
+
+        for (ArrayList<String> lline : this.code) { // labelline
+            // TODO: go over each line, making sure all labels are saved in labels.
+        }
+
+        // now ALL the MARK commands have been processed. the only way to
+        // get to one would be with a label, which will lead to the line being skipped.
+
+        this.curline = 1; // reset code pointer
+
+        // all labels now exist, are MARKed, and are unique.
+
+        ArrayList<String> arithmeticOperations = new ArrayList<String>("ADDI", "SUBI", "DIVI", "MULI");
         for (ArrayList<String> line : this.code) {
-            String firstElem = line.get(0);
-            ArrayList<String> arithmeticOperations = new ArrayList<String>("ADDI", "SUBI", "DIVI", "MULI");
+            firstElem = line.get(0);
+
+            // if MARK is here, skip.
+
+            if ("MARK" == firstElem || (this.labels.containsKey(firstElem) && "MARK" == line.get(1))) {
+                this.curline += 1;
+                break;
+            }
 
             if (arithmeticOperations.contains(firstElem)) {
                 line.remove(0);
-                this.curline += 1;
-
                 /*
                  * This function will throw an IllegalArgumentException
                  * which needs to be caught by Game class, which should also
                  */
                 resolveArithmetic(line, firstElem);
+                this.curline += 1;
+
             }
         }
+    }
+
+    public void addLabel(String label) {
+
+        if (this.labels.containsKey(mline.get(1))) {
+            // do we even need to throw an error here?
+            throw new IllegalArgumentException("label already created");
+        }
+
+        // we are sure that the label isn't already in labels.
+
+        this.labels.put(mline.get(1), -1);
     }
 
     /*
@@ -321,6 +401,10 @@ public class Parser {
         return n;
     }
 
+    public void computeLabel(String label) {
+
+    }
+
     /*
      * Takes arguments, a command, and tries executing them.
      * Throws IllegalArgumentException if something the user
@@ -336,10 +420,7 @@ public class Parser {
          */
         int val1 = convToInt(args.get(0)), val2 = convToInt(args.get(1)), res;
         String resReg;
-        if (checkArithmeticArguments(val1, val2, sum)) {
-            throw new IllegalArgumentException(
-                    "Arithmetic command argument or result is out of bounds, [-9999,9999]");
-        }
+
         if (!(args.get(2) instanceof String)) {
             throw new IllegalArgumentException(
                     "Arithmetic command destination argument isn't a String (cannot be resolved to exa Register)");
@@ -356,17 +437,24 @@ public class Parser {
                 break;
             case "DIVI":
                 if (val2 == 0) {
-                    throw new IllegalArgumentException("You cannot divide by 0");
+                    throw new IllegalArgumentException("You cannot divide by 0 :(");
                 }
                 res = val1 / val2;
                 break;
             default:
                 throw new IllegalArgumentException("Command not found/label not MARKed");
         }
+        if (!checkArithmeticArguments(val1, val2, res)) {
+            throw new IllegalArgumentException(
+                    "Arithmetic command argument or result is out of bounds, [-9999,9999]");
+        }
         resReg = (String) args.get(2);
         this.curline += 1;
-        return setRegister(resReg, sum);
+        if (!setRegister(resReg, res)) {
+            throw new IllegalArgumentException("Register not found");
+        }
     }
+
     /*
      * COMMAND archetype
      * always returns a boolean, true if the command was executed successfully,
@@ -383,29 +471,6 @@ public class Parser {
      * in the code,
      * and with the label's line if it is.
      */
-    public boolean MARK(String label) {
-        for (String key : this.labels.keySet()) {
-            if (label == key)
-                return false; // label already exists
-        }
-
-        int tempcurline = 1; // used to track the current line iterated
-        for (ArrayList<String> codesubarray : this.code) { // iterating over every line of code
-            if (label == codesubarray.get(0)) { // label found!
-                if (labels.containsKey(label))
-                    return false; // label was referenced earlier
-                this.labels.put(label, tempcurline);
-            }
-            tempcurline++;
-        }
-
-        if (!labels.containsKey(label)) {
-            this.labels.put(label, -1);
-        }
-
-        this.curline += 1;
-        return true; // label was found to be unique or nonexistant
-    }
 
     /*
      * Takes a label, casts it to either String or int depending on what it is,
@@ -413,28 +478,32 @@ public class Parser {
      * 
      */
 
-    public boolean JUMP(Object label) {
+    public void JUMP(Object label) {
         if (label instanceof int) {
             int num = (int) label;
 
-            if (0 == num || abs(num) > curline)
-                return false;
+            if (0 == num) {
+                throw new IllegalArgumentException("you can't jump 0 lines");
+            }
+            if (num < 0 && abs(num) > curline) {
+                throw new IllegalArgumentException("you cannot jump ");
+            }
 
             this.curline += num;
-            return true;
+
         }
 
         else if (label instanceof String) {
             String str = (String) label;
 
-            if (!(this.labels.containsKey(str)))
-                return false;
-
+            if (!(this.labels.containsKey(str))) {
+                throw new IllegalArgumentException("label does not exist");
+            }
             this.curline = labels.get(str);
-            return true;
+
         }
 
-        return false;
+        throw new IllegalArgumentException("this was not supposed to happen (unknown jump error)");
     }
 
     /*
@@ -451,7 +520,7 @@ public class Parser {
      * 
      */
 
-    public boolean TEST(ArrayList<String> args) {
+    public void TEST(ArrayList<String> args) {
         if (args.size() == 3) {
 
             /*
@@ -472,12 +541,18 @@ public class Parser {
                 switch (symbol) {
                     case "<":
                         this.exa.setT((A < B) ? 1 : 0);
+                        break;
                     case "=":
                         this.exa.setT((A == B) ? 1 : 0);
+                        break;
                     case ">":
                         this.exa.setT((A > B) ? 1 : 0);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Symbol (second argument) not recognised");
                 }
-                return true;
+                return;
+
             } else if (a instanceof String && b instanceof String) {
                 String A = (String) a;
                 String B = (String) b;
@@ -485,12 +560,17 @@ public class Parser {
                 switch (symbol) {
                     case "<":
                         this.exa.setT((comp == -1) ? 1 : 0);
+                        break;
                     case "=":
                         this.exa.setT((comp == 0) ? 1 : 0);
+                        break;
                     case ">":
                         this.exa.setT((comp == 1) ? 1 : 0);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Symbol (second argument) not recognised");
                 }
-                return true;
+                return;
             }
 
         } else if (args.size() == 1) {
@@ -504,26 +584,26 @@ public class Parser {
 
             Object s = args.get(0);
             if (!(s instanceof String)) {
-                return false;
+                throw new IllegalArgumentException("Cannot have single non-String argument");
             }
 
             String S = (String) s;
 
             if (S.equals("EOF")) {
                 if (null == this.exa.getF()) {
-                    return false;
+                    throw new IllegalArgumentException("No file");
                 }
                 this.exa.setT(!this.exa.getF().getIter().hasNext() ? '1' : '0');
-                return true;
+                return;
             }
 
             else if (S.equals("MRD")) {
                 // this was not supposed to happen...
-                return false;
+                throw new IllegalArgumentException("MRD not supported");
             }
         }
 
-        return false;
+        throw new IllegalArgumentException("Argument(s) not recognised");
 
     }
 
