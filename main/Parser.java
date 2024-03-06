@@ -119,8 +119,8 @@ public class Parser {
         // Control Flow
         MARK, // done
         JUMP, // done
-        TJMP,
-        FJMP,
+        TJMP, // done
+        FJMP, // done
 
         // Conditions
         TEST, // done
@@ -218,34 +218,6 @@ public class Parser {
      * verifying any unknown command's existence in labels (the ArrayList
      * which contains all the labels).
      */
-    public void MARK(String label) {
-        for (String key : this.labels.keySet()) {
-            if (label == key)
-                throw new IllegalArgumentException("label already exists");
-        }
-
-        if (this.Commands.contains(label)) {
-            throw new IllegalArgumentException("label cannot be a command");
-        }
-
-        int tempcurline = 1; // used to track the current line iterated
-        for (ArrayList<String> codesubarray : this.code) { // iterating over every line of code
-            if (label == codesubarray.get(0)) { // label found!
-                if (labels.containsKey(label)) {
-                    throw new IllegalArgumentException("label was referenced earlier");
-                }
-                this.labels.put(label, tempcurline);
-            }
-            tempcurline++;
-        }
-
-        if (!labels.containsKey(label)) {
-            throw new IllegalArgumentException("label not referenced");
-        }
-
-        this.curline += 1;
-        // label was found to be unique or nonexistant
-    }
 
     public void start() {
         String firstElem;
@@ -259,7 +231,7 @@ public class Parser {
                 if (!(mline.size() == 2)) {
                     throw new IllegalArgumentException("Mark got more than 2 arguments");
                 }
-                
+
                 addLabel(mline.get(1));
 
             } else if (!Commands.contains(firstElem) && mline.get(1) == "MARK") {
@@ -272,8 +244,31 @@ public class Parser {
             this.curline += 1;
         }
 
+        this.curline = 1;
+
         for (ArrayList<String> lline : this.code) { // labelline
-            // TODO: go over each line, making sure all labels are saved in labels.
+            firstElem = mline.get(0);
+
+            if (Commands.contains(firstElem)) {
+                this.curline++;
+                break;
+            }
+            // everything that is left is a label
+
+            if (!this.labels.containsKey(firstElem)) {
+                throw new IllegalArgumentException("Label " + firstElem + " is not in the list");
+            }
+            // everything that is left is MARKed
+
+            if (this.labels.get(label) != -1) {
+                throw new IllegalArgumentException("Duplicate label " + firstElem);
+            }
+            // everything that is left is not initialised yet (line = -1)
+
+            this.labels.remove(firstElem);
+            this.labels.put(firstElem, this.curline);
+
+            this.curline += 1;
         }
 
         // now ALL the MARK commands have been processed. the only way to
@@ -288,13 +283,13 @@ public class Parser {
             firstElem = line.get(0);
 
             // if MARK is here, skip.
-
-            if ("MARK" == firstElem || (this.labels.containsKey(firstElem) && "MARK" == line.get(1))) {
+            if (checkCommand(line, "MARK")) {
                 this.curline += 1;
                 break;
             }
 
-            if (arithmeticOperations.contains(firstElem)) {
+            // ADDI, SUBI, DIVI, MULI
+            else if (arithmeticOperations.contains(firstElem)) {
                 line.remove(0);
                 /*
                  * This function will throw an IllegalArgumentException
@@ -302,20 +297,59 @@ public class Parser {
                  */
                 resolveArithmetic(line, firstElem);
                 this.curline += 1;
-
             }
+
+            // TEST
+            else if (checkCommand(line, "TEST")) {
+                line = line.remove(0);
+                // will throw errors by herself
+                TEST(line);
+            }
+
+            else if (checkCommand(line, "JUMP")) {
+                line = line.remove(0);
+                if (line.size() != 1) {
+                    throw new IllegalArgumentException("JUMP" + line + " needs to only have 1 argument");
+                }
+                JUMP(line);
+            }
+
+            else if (checkCommand(line, "TJMP")) {
+                line = line.remove(0);
+                if (line.size() != 1) {
+                    throw new IllegalArgumentException("TJMP" + line + " has to only have 1 argument");
+                }
+                if (this.exa.getT() > 0) {
+                    JUMP(line);
+                }
+            }
+
+            else if (checkCommand(line, "FJMP")) {
+                line = line.remove(0);
+                if (line.size() != 1) {
+                    throw new IllegalArgumentException("FJMP" + line + " has to only have 1 argument");
+                }
+                if (this.exa.getT() == 0) {
+                    JUMP(line);
+                }
+            }
+
         }
+    }
+
+    public boolean checkCommand(ArrayList<String> line, String objective) {
+        return objective == line.get(0) || (this.labels.containsKey(line.get(0)) && objective == line.get(1));
     }
 
     public void addLabel(String label) {
 
-        if(this.Commands.contains(label)) {
-            throw new IllegalArgumentException("label cannot be a command");
+        if (this.Commands.contains(label)) {
+            throw new IllegalArgumentException("label " + label + " cannot be a command");
         }
 
         if (this.labels.containsKey(mline.get(1))) {
             // do we even need to throw an error here?
-            throw new IllegalArgumentException("label already created");
+            throw new IllegalArgumentException("label " + label + " already created");
         }
 
         // we are sure that the label isn't already in labels.
@@ -383,7 +417,7 @@ public class Parser {
             if (f.iter.hasNext()) {
                 n = Integer.parseInt(f.iter.next());
             } else {
-                throw new IllegalArgumentException("The File does not have a next value");
+                throw new IllegalArgumentException("File " + f.getName() + " does not have next value");
             }
         }
 
@@ -406,10 +440,6 @@ public class Parser {
         return n;
     }
 
-    public void computeLabel(String label) {
-
-    }
-
     /*
      * Takes arguments, a command, and tries executing them.
      * Throws IllegalArgumentException if something the user
@@ -418,7 +448,8 @@ public class Parser {
 
     public void resolveArithmetic(ArrayList<String> args, String firstElement) {
         if (args.size() != 3) {
-            throw new IllegalArgumentException("Arithmetic command didn't get 3 arguments");
+            throw new IllegalArgumentException(
+                    "Arithmetic command didn't get 3 arguments, instead got " + args.size() + " arguments");
         }
         /*
          * This will throw an IllegalArgumentException that needs to be caught by game.
@@ -428,7 +459,7 @@ public class Parser {
 
         ArrayList<String> numbers = new ArrayList<>("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
 
-        if (numbers.contains(args.get(2).substring(0, 1))) { 
+        if (numbers.contains(args.get(2).substring(0, 1))) {
             throw new IllegalArgumentException(
                     "Arithmetic command destination argument isn't a String (cannot be resolved to exa Register)");
         }
@@ -449,7 +480,7 @@ public class Parser {
                 res = val1 / val2;
                 break;
             default:
-                throw new IllegalArgumentException("Command not found/label not MARKed");
+                throw new IllegalArgumentException("Command " + firstElem + " not found/label not MARKed");
         }
         if (!checkArithmeticArguments(val1, val2, res)) {
             throw new IllegalArgumentException(
@@ -458,7 +489,7 @@ public class Parser {
         resReg = (String) args.get(2);
         this.curline += 1;
         if (!setRegister(resReg, res)) {
-            if(!setFiles(resReg, res)) {
+            if (!setFiles(resReg, res)) {
                 throw new IllegalArgumentException("Register not found");
             }
         }
@@ -474,14 +505,6 @@ public class Parser {
      */
 
     /*
-     * Receives a label.
-     * Checks if the label already exists.
-     * Adds the new label to the map of labels, with -1 as line if the label isn't
-     * in the code,
-     * and with the label's line if it is.
-     */
-
-    /*
      * Takes a label, casts it to either String or int depending on what it is,
      * and sends the curline there.
      * 
@@ -494,8 +517,9 @@ public class Parser {
             if (0 == num) {
                 throw new IllegalArgumentException("you can't jump 0 lines");
             }
-            if (num < 0 && abs(num) > curline) {
-                throw new IllegalArgumentException("you cannot jump ");
+            if ((num < 0 && abs(num) > this.curline) || (num + this.curline > this.code.size())) { // curline = 5, JUMP
+                                                                                                   // -10 not possible
+                throw new IllegalArgumentException("you cannot jump " + num + " lines, out of bounds");
             }
 
             this.curline += num;
@@ -506,17 +530,18 @@ public class Parser {
             String str = (String) label;
 
             if (!(this.labels.containsKey(str))) {
-                throw new IllegalArgumentException("label does not exist");
+                throw new IllegalArgumentException("label " + str + " does not exist");
             }
             this.curline = labels.get(str);
 
         }
 
-        throw new IllegalArgumentException("this was not supposed to happen (unknown jump error)");
+        throw new IllegalArgumentException("label type not supported (not String or int)");
     }
 
     /*
      * TEST has 5 implementations:
+     * 
      * TEST a > b
      * TEST a = b
      * TEST a < b
@@ -558,7 +583,7 @@ public class Parser {
                         this.exa.setT((A > B) ? 1 : 0);
                         break;
                     default:
-                        throw new IllegalArgumentException("Symbol (second argument) not recognised");
+                        throw new IllegalArgumentException("Symbol " + symbol + " not recognised (not <, >, or =)");
                 }
                 return;
 
@@ -577,7 +602,7 @@ public class Parser {
                         this.exa.setT((comp == 1) ? 1 : 0);
                         break;
                     default:
-                        throw new IllegalArgumentException("Symbol (second argument) not recognised");
+                        throw new IllegalArgumentException("Symbol " + symbol + " not recognised");
                 }
                 return;
             }
@@ -602,7 +627,7 @@ public class Parser {
                 if (null == this.exa.getF()) {
                     throw new IllegalArgumentException("No file");
                 }
-                this.exa.setT(!this.exa.getF().getIter().hasNext() ? '1' : '0');
+                this.exa.setT(!this.exa.getF().getIter().hasNext() ? 1 : 0);
                 return;
             }
 
