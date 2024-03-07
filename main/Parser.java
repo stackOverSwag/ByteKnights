@@ -155,6 +155,8 @@ public class Parser {
         RAND
     }
 
+    private ArrayList<String> arithmeticOperations;
+
     private Map<String, Integer> labels; // label map
     private ArrayList<ArrayList<String>> code; // player's code
     private int curline; // current line index (starts at 1)
@@ -184,6 +186,7 @@ public class Parser {
         if (null == e)
             throw new NullPointerException("exa cannot be null");
 
+        this.arithmeticOperations = new ArrayList<String>("ADDI", "SUBI", "DIVI", "MULI");
         this.level = level;
         this.labels = new HashMap<>();
         this.code = new ArrayList<>();
@@ -206,20 +209,26 @@ public class Parser {
     }
 
     /*
-     * START!!!!
-     * takes the code and tries to execute it!
+     * Executing the code!
      * 
-     * Two steps:
+     * 3 steps:
      * 
-     * 1. check ALL appearences of MARK (even "myL1 MARK myL2") and execute MARKs
+     * 1. procLabel pt1: check ALL appearences of MARK (even "myL1 MARK myL2") and
+     * execute MARKs
      * (to not have problems with labels later on)
      * 
-     * 2. skipping all MARK instructions, execute the rest of the code, while
+     * 2. procLabel pt2: go through all the code, adding every label to labels, and
+     * detecting undefined
+     * labels as well as doubly-defined labels (labels that were previously already
+     * defined)
+     * 
+     * 3. step: skipping all MARK instructions, execute the rest of the code, while
      * verifying any unknown command's existence in labels (the ArrayList
      * which contains all the labels).
      */
 
-    public void start() {
+    public void procLabels() {
+        this.curline = 1;
         String firstElem;
         // Step 1: start by going through searching all the "MARK myL" and "myL1 MARK
         // myL2" and add labels to the list of labels
@@ -276,9 +285,12 @@ public class Parser {
 
         this.curline = 1; // reset code pointer
 
-        // all labels now exist, are MARKed, and are unique.
+    }
 
-        ArrayList<String> arithmeticOperations = new ArrayList<String>("ADDI", "SUBI", "DIVI", "MULI");
+    public void step() {
+
+        // all labels now exist, are MARKed, and are unique (after procLabel)
+
         for (ArrayList<String> line : this.code) {
             firstElem = line.get(0);
 
@@ -289,7 +301,7 @@ public class Parser {
             }
 
             // ADDI, SUBI, DIVI, MULI
-            else if (arithmeticOperations.contains(firstElem)) {
+            else if (this.arithmeticOperations.contains(firstElem)) {
                 line.remove(0);
                 /*
                  * This function will throw an IllegalArgumentException
@@ -299,7 +311,6 @@ public class Parser {
                 this.curline += 1;
             }
 
-            // TEST
             else if (checkCommand(line, "TEST")) {
                 line = line.remove(0);
                 // will throw errors by herself
@@ -319,7 +330,7 @@ public class Parser {
                 if (line.size() != 1) {
                     throw new IllegalArgumentException("TJMP" + line + " has to only have 1 argument");
                 }
-                if (this.exa.getT() > 0) {
+                if (this.exa.getT() != 0) {
                     JUMP(line);
                 }
             }
@@ -338,7 +349,7 @@ public class Parser {
     }
 
     public boolean checkCommand(ArrayList<String> line, String objective) {
-        return objective == line.get(0) || (this.labels.containsKey(line.get(0)) && objective == line.get(1));
+        return (objective == line.get(0) || (this.labels.containsKey(line.get(0)) && objective == line.get(1)));
     }
 
     public void addLabel(String label) {
@@ -347,14 +358,14 @@ public class Parser {
             throw new IllegalArgumentException("label " + label + " cannot be a command");
         }
 
-        if (this.labels.containsKey(mline.get(1))) {
+        if (this.labels.containsKey(label)) {
             // do we even need to throw an error here?
             throw new IllegalArgumentException("label " + label + " already created");
         }
 
         // we are sure that the label isn't already in labels.
 
-        this.labels.put(mline.get(1), -1);
+        this.labels.put(label, -1);
     }
 
     /*
@@ -371,6 +382,13 @@ public class Parser {
         } else if (S.equals("M")) {
             this.exa.setM(n);
         } else {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean setFiles(String S, int n) {
+        if (null == this.exa.getF()) {
             return false;
         }
         return true;
@@ -518,7 +536,8 @@ public class Parser {
                 throw new IllegalArgumentException("you can't jump 0 lines");
             }
             if ((num < 0 && abs(num) > this.curline) || (num + this.curline > this.code.size())) { // curline = 5, JUMP
-                                                                                                   // -10 not possible
+                                                                                                   // -10
+                                                                                                   // not possible
                 throw new IllegalArgumentException("you cannot jump " + num + " lines, out of bounds");
             }
 
