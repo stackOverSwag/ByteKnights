@@ -108,60 +108,58 @@ public class Parser {
      * 
      */
 
-    private enum Commands {
-        // Arithmetic
-        ADDI, // done
-        SUBI, // done
-        MULI, // done
-        DIVI, // done
-        SWIZ, // unneeded?
+    private ArrayList<String> Commands = new ArrayList<String>(
+            // Arithmetic
+            "ADDI", // done
+            "SUBI", // done
+            "MULI", // done
+            "DIVI", // done
+            "SWIZ", // unneeded?
 
-        // Control Flow
-        MARK, // done
-        JUMP, // done
-        TJMP, // done
-        FJMP, // done
+            // Control Flow
+            "MARK", // done
+            "JUMP", // done
+            "TJMP", // done
+            "FJMP", // done
 
-        // Conditions
-        TEST, // done
+            // Conditions
+            "TEST", // done
 
-        // Multiprocessing
-        REPL,
-        HALT,
-        KILL,
+            // Multiprocessing
+            "REPL",
+            "HALT",
+            "KILL",
 
-        // Movement
-        LINK,
-        HOST,
+            // Movement
+            "LINK",
+            "HOST",
 
-        // Communication
-        MODE,
-        VOID,
-        // another TEST // done
+            // Communication
+            "MODE",
+            "VOID",
+            // another TEST // done
 
-        // File Manipulation
-        MAKE, // done
-        GRAB,
-        FILE,
-        SEEK,
-        // another VOID
-        DROP,
-        WIPE,
-        // another TEST // done
+            // File Manipulation
+            "MAKE", // done
+            "GRAB",
+            "FILE",
+            "SEEK",
+            // another VOID
+            "DROP",
+            "WIPE",
+            // another TEST // done
 
-        // Miscellaneous
-        NOTE,
-        NOOP,
-        RAND
-    }
+            // Miscellaneous
+            "NOTE",
+            "NOOP",
+            "RAND");
 
-    private ArrayList<String> arithmeticOperations;
-
+    private ArrayList<String> arithmeticOperations = new ArrayList<String>("ADDI", "SUBI", "DIVI", "MULI");
     private Map<String, Integer> labels; // label map
     private ArrayList<ArrayList<String>> code; // player's code
     private int curline; // current line index (starts at 1)
     private Niveau level;
-    private Exa exa;
+    private Exas exa;
     /*
      * Note: all the errors to think about:
      * Invalid Instruction (not in Commands)
@@ -178,22 +176,22 @@ public class Parser {
      * Stores 1 into this.curline, e into exa
      * Creates empty this.labels Map.
      */
-    public Parser(String code, Niveau level, Exa e) {
-        if (null == code)
-            throw new NullPointerException("code cannot be null");
+    public Parser(Niveau level, Exa e) {
         if (null == level)
             throw new NullPointerException("level cannot be null");
         if (null == e)
             throw new NullPointerException("exa cannot be null");
 
-        this.arithmeticOperations = new ArrayList<String>("ADDI", "SUBI", "DIVI", "MULI");
+        if (e != level.getExa1() || e != level.getExa2()) {
+            throw new IllegalArgumentException("Exa isn't in level");
+        }
         this.level = level;
         this.labels = new HashMap<>();
         this.code = new ArrayList<>();
         this.curline = 1;
         this.exa = e;
 
-        String[] temp = code.split("\n");
+        String[] temp = this.exa.getCode().split("\n");
         for (String line : temp) {
             String[] words = line.split(" ");
             ArrayList<String> lineWords = new ArrayList<>();
@@ -289,6 +287,8 @@ public class Parser {
 
     public void step() {
 
+        this.curline = 1;
+
         // all labels now exist, are MARKed, and are unique (after procLabel)
 
         for (ArrayList<String> line : this.code) {
@@ -379,18 +379,17 @@ public class Parser {
             this.exa.setX(n);
         } else if (S.equals("T")) {
             this.exa.setT(n);
-        } else if (S.equals("M")) {
-            this.exa.setM(n);
         } else {
             return false;
         }
         return true;
     }
 
-    public boolean setFiles(String S, int n) {
+    public boolean setFiles(String n) {
         if (null == this.exa.getF()) {
             return false;
         }
+        this.exa.getF().setContenu(n);
         return true;
     }
 
@@ -426,7 +425,7 @@ public class Parser {
     public int convToInt(Object o) {
         int n;
 
-        if (o instanceof int) {
+        if (o instanceof Integer) {
             n = (int) o;
         }
 
