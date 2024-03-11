@@ -109,12 +109,14 @@ public class Parser {
      */
 
     private ArrayList<String> Commands = new ArrayList<String>(
+            // Basic Access
+            "COPY",
+
             // Arithmetic
             "ADDI", // done
             "SUBI", // done
             "MULI", // done
             "DIVI", // done
-            "SWIZ", // unneeded?
 
             // Control Flow
             "MARK", // done
@@ -125,34 +127,16 @@ public class Parser {
             // Conditions
             "TEST", // done
 
-            // Multiprocessing
-            "REPL",
-            "HALT",
-            "KILL",
-
             // Movement
-            "LINK",
-            "HOST",
-
-            // Communication
-            "MODE",
-            "VOID",
-            // another TEST // done
+            "LINK", // done
 
             // File Manipulation
-            "MAKE", // done
-            "GRAB",
-            "FILE",
-            "SEEK",
-            // another VOID
-            "DROP",
-            "WIPE",
-            // another TEST // done
+            "GRAB", // done
+            "DROP", // done
 
-            // Miscellaneous
-            "NOTE",
-            "NOOP",
-            "RAND");
+            // extra!
+            "MAKE" // done
+    );
 
     private ArrayList<String> arithmeticOperations = new ArrayList<String>("ADDI", "SUBI", "DIVI", "MULI");
     private Map<String, Integer> labels; // label map
@@ -385,7 +369,7 @@ public class Parser {
         return true;
     }
 
-    public boolean setFiles(String n) {
+    public boolean setFilesContenu(String n) {
         if (null == this.exa.getF()) {
             return false;
         }
@@ -506,7 +490,7 @@ public class Parser {
         resReg = (String) args.get(2);
         this.curline += 1;
         if (!setRegister(resReg, res)) {
-            if (!setFiles(resReg, res)) {
+            if (!setFilesContenu(resReg, res)) {
                 throw new IllegalArgumentException("Register not found");
             }
         }
@@ -514,11 +498,8 @@ public class Parser {
 
     /*
      * COMMAND archetype
-     * always returns a boolean, true if the command was executed successfully,
-     * false if not.
      * don't forget to check the arguments! every command may take different types
      * as arguments!
-     * because of the JUMP commands, every command will advance curline by itself
      */
 
     /*
@@ -557,6 +538,31 @@ public class Parser {
         throw new IllegalArgumentException("label type not supported (not String or int)");
     }
 
+    public void GRAB(String filename) {
+        if (this.exa.getF() != null) {
+            throw new IllegalArgumentException("File already held!");
+        }
+
+        this.exa.setF(this.level.getFile(filename));
+        this.level.removeFile(filename);
+
+    }
+
+    public void DROP() {
+        if (this.exa.getF() == null) {
+            throw new IllegalArgumentException("No file is held");
+        }
+
+        this.level.addFile(this.exa.getF());
+        this.exa.setF(null);
+    }
+
+    public void LINK(Object obj) {
+        if(obj instanceof int) {
+            not finished haha i throw errors 
+        }
+    }
+
     /*
      * TEST has 5 implementations:
      * 
@@ -572,7 +578,7 @@ public class Parser {
      * 
      */
 
-    public void TEST(ArrayList<String> args) {
+    public void TEST(ArrayList<Object> args) {
         if (args.size() == 3) {
 
             /*
@@ -584,10 +590,10 @@ public class Parser {
              */
 
             Object a = args.get(0);
-            String symbol = args.get(1);
+            String symbol = (String) args.get(1);
             Object b = args.get(2);
 
-            if (a instanceof int && b instanceof int) {
+            if (a instanceof Integer && b instanceof Integer) {
                 int A = (int) a;
                 int B = (int) b;
                 switch (symbol) {

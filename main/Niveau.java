@@ -1,45 +1,35 @@
+import projet.Files;
+
 public class Niveau {
     private Exas exa1;
     private Exas exa2;
-    private Files file;
+    private ArrayList<Files> files;
     private int height;
     private int width;
     private ArrayList<Integer> positions;
 
-    public Niveau(Exas exa1, Exas exa2, Files file) {
+    public Niveau(Exas exa1, Exas exa2, ArrayList<Files> files) {
 
-        this.file = file;
+        this.files = new ArrayList<>(files);
         this.exa1 = exa1;
         this.exa2 = exa2;
         this.height = 5;
         this.width = 5;
 
         checkPositions();
-
-        saveStartingPositions();
+        saveExasStartingPositions();
     }
 
-    // too many arguments...
-    public Niveau(Exas exa1, Exas exa2, Files file,
-            int exa1X, int exa1Y, int exa2X,
-            int exa2Y, int fileX, int fileY,
-            int height, int width) {
+    public Niveau(Exas exa1, Exas exa2, ArrayList<Files> file, int height, int width) {
+
         this.file = file;
         this.exa1 = exa1;
         this.exa2 = exa2;
-
-        checkPositions();
-
-        this.exa1.setCoordX(exa1X);
-        this.exa2.setCoordX(exa2X);
-        this.exa1.setCoordY(exa1Y);
-        this.exa2.setCoordY(exa2Y);
-        this.file.setCoordX(fileX);
-        this.file.setCoordY(fileY);
         this.height = height;
         this.width = width;
 
-        saveStartingPositions();
+        checkPositions();
+        saveExasStartingPositions();
     }
 
     public void checkPositions() {
@@ -49,17 +39,19 @@ public class Niveau {
         if (this.height < this.exa2.getCoordY()) {
             throw new IllegalArgumentException("exa2y > height");
         }
-        if (this.height < this.file.getCoordY()) {
-            throw new IllegalArgumentException("filey > height");
-        }
         if (this.width < this.exa1.getCoordX()) {
             throw new IllegalArgumentException("exa1X > width");
         }
         if (this.width < this.exa2.getCoordX()) {
             throw new IllegalArgumentException("exa2X > width");
         }
-        if (this.width < this.file.getCoordX()) {
-            throw new IllegalArgumentException("filex > width");
+        for (Files f : this.files) {
+            if (this.height < f.getCoordY()) {
+                throw new IllegalArgumentException("File " + f.getNom() + " height > this.height");
+            }
+            if (this.width < f.getCoordX()) {
+                throw new IllegalArgumentException("File " + f.getNom() + " width > this.width");
+            }
         }
 
     }
@@ -72,37 +64,109 @@ public class Niveau {
         return this.exa2;
     }
 
-    public Files getFile() {
-        return this.file;
+    public Files getFile(String nom) {
+        for (Files f : this.files) {
+            if (f.getNom().equals(nom)) {
+                return f;
+            }
+        }
+        throw new IllegalArgumentException("File " + nom + " not found");
+    }
+
+    public ArrayList<Integer> findEmptySpot() {
+
+        // not using a matrix of files made this into O(files.size() * n^2) time
+        // complexity... I am an idiot.
+        for (int i = 0; i < height; i++) {
+
+            for (int j = 0; j < width; j++) {
+                for (Files f : this.files) {
+                    if (!(f.getCoordX() == i && f.getCoordY() == j)) {
+                        return new ArrayList<File>(i, j);
+                    }
+                }
+            }
+        }
+        return new ArrayList<Integer>();
+    }
+
+    public void addFile(File file) {
+        this.level.checkIfFree();
+
+        ArrayList<Integer> coords = findEmptySpot();
+        if (coords.size() == 0) {
+            throw new IllegalArgumentException("File " + file + " does not fit");
+        }
+
+        this.files.add(file);
+    }
+
+    public void removeFile(String nom) {
+        for (File f : this.files) {
+            if (f.getNom().equals(nom)) {
+                if (!this.files.remove(f)) {
+                    throw new IllegalArgumentException("File " + nom + " was not able to be removed");
+                }
+
+            }
+        }
+        throw new IllegalArgumentException("File " + nom + " does not exist in the level");
+    }
+
+    public void checkIfFree(int x, int y) {
+        if (this.exa1.getCoordX() == x && this.exa1.getCoordY() == y) {
+            throw new IllegalArgumentException("Exa " + this.exa1.getNom() + " already there");
+        }
+
+        if (this.exa2.getCoordX() == x && this.exa2.getCoordY() == y) {
+            throw new IllegalArgumentException("Exa " + this.exa2.getNom() + " already there");
+        }
+
+        for (Files f : this.files) {
+            if (f.getCoordX() == x && f.getCoordY() == y) {
+                throw new IllegalArgumentException("Files " + f.getNom() + " already there");
+            }
+        }
     }
 
     public void changePosition(String nom, int x, int y) {
+        checkIfFree(x, y);
+        if (nom.equals(this.exa1.getNom())) {
 
-        if (nom == this.file.getNom()) {
-            this.file.setCoordX(x);
-            this.file.setCoordY(y);
-
-        } else if (nom == this.exa1.getNom()) {
             this.exa1.setCoordX(x);
             this.exa1.setCoordY(y);
-        } else if (nom == this.exa2.getNom()) {
+            checkPositions();
+            return;
+        } else if (nom.equals(this.exa2.getNom())) {
             this.exa2.setCoordX(x);
             this.exa2.setCoordY(y);
+            checkPositions();
+            return;
         } else {
-            throw new IllegalArgumentException(nom + " is not in the level");
-        }
+            for (Files f : this.files) {
+                if (f.getNom().equals(nom)) {
+                    f.setCoordX(x);
+                    f.setCoordY(y);
+                    checkPositions();
+                    return;
+                }
+            }
 
-        checkPositions();
+        }
+        throw new IllegalArgumentException(nom + " is not in the level");
+
     }
 
-    public void saveStartingPositions() {
+    public boolean hasFreeSpace() {
+        return (2 + this.files.size()) < (this.height * this.width);
+    }
+
+    public void saveExasStartingPositions() {
         this.positions = new ArrayList<Integer>(
                 this.exa1.getCoordX(),
                 this.exa1.getCoordY(),
                 this.exa2.getCoordX(),
-                this.exa2.getCoordY(),
-                this.file.getCoordX(),
-                this.file.getCoordY());
+                this.exa2.getCoordY());
     }
 
     public boolean hasWon() {
