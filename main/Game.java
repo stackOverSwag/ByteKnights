@@ -1,19 +1,13 @@
-package projet;
+package main;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
-
-
-public class Game{
+public class Game {
   ArrayList<Hosts> hosts;
 
-  public Game(){
-
+  public Game() {
 
   }
-
-
-
-
 
 }

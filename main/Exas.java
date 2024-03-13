@@ -1,4 +1,4 @@
-package projet;
+package main;
 
 /*
 	nom : nom de l'exa
