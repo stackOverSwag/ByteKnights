@@ -1,4 +1,4 @@
-import projet.Files;
+package main;
 
 public class Niveau {
     private Exas exa1;

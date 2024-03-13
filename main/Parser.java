@@ -1,3 +1,5 @@
+package main;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,70 +43,6 @@ public class Parser {
      * to the Level structure in accordance to what the commands
      * passed tell it to.
      * 
-     * The problems that arise with this line-by-line implementation are
-     * labels. How do we treat labels? In xcode, we are saved my the
-     * MAKE label(L) command - we know exactly when labels are created.
-     * Thus we can save them in a map (explained why later) with
-     * the key being the name of the label itself, and the value being
-     * the line that the label appears at, with -1 as the value if the
-     * label wasn't used, for example:
-     * 
-     * (1) MAKE myL
-     * (2) myL ADDI...
-     * 
-     * results in:
-     * 
-     * (0) labels = []
-     * (1) labels = ["myL":-1]
-     * (2) labels = ["myL":2]
-     * 
-     * In reality the label shouldn't be -1, since that would mean it's unused,
-     * as well as the fact that label searching should be done in MARK itself.
-     * 
-     * So the reasons to use a map to store this data are:
-     * 
-     * 1) Encounter the label at assignment:
-     * when checking if the first word in the
-     * subarray of A is a known command, we can
-     * also check if the first word appears in
-     * the map of labels before throwing
-     * an error to the player.
-     * 
-     * 2) JUMP label after label is assigned:
-     * we can save the line at which the label is
-     * first mentionned, so that if the player
-     * wants to make a loop in his code, we can
-     * know in the future if something like
-     * "JUMP myL" will just makes us check our
-     * map to see where to go back to,
-     * or to throw an error if the label "myL"
-     * doesn't exist, and if it does, we just
-     * set our curline variable to the value
-     * in the labels map stored at the
-     * key "myL" (Turing's Halting problem
-     * is watering at the mouth here).
-     * 
-     * 3) JUMP label before label is assigned:
-     * we can look through A (the array sent
-     * over by Game) and search for the label,
-     * adding it to the map and then
-     * jumping to the line (changing the variable
-     * curline).
-     * 
-     * 4) Duplicate label assignment:
-     * if the label has already been assigned (ie
-     * in the map it does not have a value of
-     * -1), we can throw an error to the player saying
-     * that the label was already assigned at line
-     * enter line stored in the map.
-     * 
-     * As mentionned in 2), we encounter the Halting problem with
-     * labels; it has no solution. However, we don't care, since
-     * Java will throw a Runtime Exception which we can just catch
-     * whenever the JUMP or similar commands (TJMP, FJMP) are involved.
-     * 
-     * With the functionality out of the way, we can proceed with the
-     * attributes:
      * 
      */
 
@@ -559,7 +497,7 @@ public class Parser {
 
     public void LINK(Object obj) {
         if(obj instanceof int) {
-            not finished haha i throw errors 
+            not finished haha i throw errors
         }
     }
 
