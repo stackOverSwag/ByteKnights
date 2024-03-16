@@ -10,7 +10,7 @@ public class Graphic {
         window.setTitle("ByteKnights"); // title
         window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // what to do when pressing close
         window.setSize(800, 500); // window size
-        wind.setLocationRelativeTo(null); // centred on screen
+        window.setLocationRelativeTo(null); // centred on screen
     }
 
     public void show() {

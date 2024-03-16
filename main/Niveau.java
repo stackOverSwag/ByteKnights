@@ -1,5 +1,7 @@
 package main;
 
+import java.util.ArrayList;
+
 public class Niveau {
     private Exas exa1;
     private Exas exa2;
@@ -20,11 +22,9 @@ public class Niveau {
         saveExasStartingPositions();
     }
 
-    public Niveau(Exas exa1, Exas exa2, ArrayList<Files> file, int height, int width) {
+    public Niveau(Exas exa1, Exas exa2, ArrayList<Files> files, int height, int width) {
 
-        this.file = file;
-        this.exa1 = exa1;
-        this.exa2 = exa2;
+        super();
         this.height = height;
         this.width = width;
 
@@ -82,7 +82,10 @@ public class Niveau {
             for (int j = 0; j < width; j++) {
                 for (Files f : this.files) {
                     if (!(f.getCoordX() == i && f.getCoordY() == j)) {
-                        return new ArrayList<File>(i, j);
+                        ArrayList<Integer> temp = new ArrayList<Integer>();
+                        temp.add(i);
+                        temp.add(j);
+                        return temp;
                     }
                 }
             }
@@ -90,19 +93,24 @@ public class Niveau {
         return new ArrayList<Integer>();
     }
 
-    public void addFile(File file) {
-        this.level.checkIfFree();
+    public void addFile(Files file) {
+        try {
+            checkIfFree(file.getCoordX(), file.getCoordY());
 
-        ArrayList<Integer> coords = findEmptySpot();
-        if (coords.size() == 0) {
-            throw new IllegalArgumentException("File " + file + " does not fit");
+        } catch (IllegalArgumentException e) {
+            ArrayList<Integer> coords = findEmptySpot();
+            if (coords.size() == 0) {
+                throw new IllegalArgumentException("File " + file + " does not fit");
+            }
+            file.setCoordX(coords.get(0));
+            file.setCoordY(coords.get(1));
         }
 
         this.files.add(file);
     }
 
     public void removeFile(String nom) {
-        for (File f : this.files) {
+        for (Files f : this.files) {
             if (f.getNom().equals(nom)) {
                 if (!this.files.remove(f)) {
                     throw new IllegalArgumentException("File " + nom + " was not able to be removed");
@@ -162,11 +170,11 @@ public class Niveau {
     }
 
     public void saveExasStartingPositions() {
-        this.positions = new ArrayList<Integer>(
-                this.exa1.getCoordX(),
-                this.exa1.getCoordY(),
-                this.exa2.getCoordX(),
-                this.exa2.getCoordY());
+        this.positions = new ArrayList<Integer>();
+        this.positions.add(this.exa1.getCoordX());
+        this.positions.add(this.exa1.getCoordY());
+        this.positions.add(this.exa2.getCoordX());
+        this.positions.add(this.exa2.getCoordY());
     }
 
     public boolean hasWon() {

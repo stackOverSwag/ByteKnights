@@ -1,6 +1,7 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /*
@@ -21,11 +22,9 @@ public class Files {
 		this.nom = nom;
 		this.contenu = contenu;
 		this.iter = contenu.iterator();
-
+		this.iter = null;
 		if (contenu != null) {
 			this.iter = contenu.iterator();
-		} else {
-			this.iter = null;
 		}
 
 		this.coordX = -1;
@@ -33,7 +32,8 @@ public class Files {
 	}
 
 	public void setContenu(String n) {
-		this.contenu = n;
+		this.contenu = new ArrayList<String>(Arrays.asList(n));
+		this.contenu.add(n);
 	}
 
 	public int getCoordX() {
@@ -65,6 +65,9 @@ public class Files {
 	// geteur iterateur
 	public Iterator<String> getIter() {
 		return this.iter;
+	}
+	public String next() {
+		return this.iter.next();
 	}
 
 	// mise a jour du code et l'iterateur de l'exa
