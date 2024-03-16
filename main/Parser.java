@@ -122,6 +122,9 @@ public class Parser {
             }
             this.code.add(lineWords);
         }
+        // detect and remember all labels
+        this.procLabels();
+
     }
 
     public int getCurLine() {
@@ -209,65 +212,65 @@ public class Parser {
 
     public void step() {
 
-        this.curline = 1;
-
         // all labels now exist, are MARKed, and are unique (after procLabel)
+        String line = this.code.get(curline);
+        String firstElem = line.get(0);
 
-        for (ArrayList<String> line : this.code) {
-            firstElem = line.get(0);
-
-            // if MARK is here, skip.
-            if (checkCommand(line, "MARK")) {
-                this.curline += 1;
-                break;
-            }
-
-            // ADDI, SUBI, DIVI, MULI
-            else if (this.arithmeticOperations.contains(firstElem)) {
-                line.remove(0);
-                /*
-                 * This function will throw an IllegalArgumentException
-                 * which needs to be caught by Game class, which should also
-                 */
-                resolveArithmetic(line, firstElem);
-                this.curline += 1;
-            }
-
-            else if (checkCommand(line, "TEST")) {
-                line = line.remove(0);
-                // will throw errors by herself
-                TEST(line);
-            }
-
-            else if (checkCommand(line, "JUMP")) {
-                line = line.remove(0);
-                if (line.size() != 1) {
-                    throw new IllegalArgumentException("JUMP" + line + " needs to only have 1 argument");
-                }
-                JUMP(line);
-            }
-
-            else if (checkCommand(line, "TJMP")) {
-                line = line.remove(0);
-                if (line.size() != 1) {
-                    throw new IllegalArgumentException("TJMP" + line + " has to only have 1 argument");
-                }
-                if (this.exa.getT() != 0) {
-                    JUMP(line);
-                }
-            }
-
-            else if (checkCommand(line, "FJMP")) {
-                line = line.remove(0);
-                if (line.size() != 1) {
-                    throw new IllegalArgumentException("FJMP" + line + " has to only have 1 argument");
-                }
-                if (this.exa.getT() == 0) {
-                    JUMP(line);
-                }
-            }
-
+        // if MARK is here, skip.
+        if (checkCommand(line, "MARK")) {
+            this.curline += 1;
         }
+
+        // ADDI, SUBI, DIVI, MULI
+        else if (this.arithmeticOperations.contains(firstElem)) {
+            line.remove(0);
+            /*
+             * This function will throw an IllegalArgumentException
+             * which needs to be caught by Game class.
+             */
+            resolveArithmetic(line, firstElem);
+            this.curline += 1;
+        }
+
+        else if (checkCommand(line, "TEST")) {
+            line = line.remove(0);
+            // will throw errors by herself
+            TEST(line);
+            this.curline += 1;
+        }
+
+        else if (checkCommand(line, "JUMP")) {
+            line = line.remove(0);
+            if (line.size() != 1) {
+                throw new IllegalArgumentException("JUMP" + line + " needs to only have 1 argument");
+            }
+            JUMP(line);
+        }
+
+        else if (checkCommand(line, "TJMP")) {
+            line = line.remove(0);
+            if (line.size() != 1) {
+                throw new IllegalArgumentException("TJMP" + line + " has to only have 1 argument");
+            }
+            if (this.exa.getT() != 0) {
+                JUMP(line);
+            } else {
+                this.curline += 1;
+            }
+        }
+
+        else if (checkCommand(line, "FJMP")) {
+            line = line.remove(0);
+            if (line.size() != 1) {
+                throw new IllegalArgumentException("FJMP" + line + " has to only have 1 argument");
+            }
+            if (this.exa.getT() == 0) {
+                JUMP(line);
+            } else {
+                this.curline += 1;
+            }
+        }
+
     }
 
     public boolean checkCommand(ArrayList<String> line, String objective) {
@@ -495,11 +498,14 @@ public class Parser {
         this.exa.setF(null);
     }
 
-    public void LINK(Object obj) {
-        if(obj instanceof int) {
-            not finished haha i throw errors
-        }
-    }
+    /*
+     * public void LINK(Object obj) {
+     * if(obj instanceof int) {
+     * not finished haha i throw errors
+     * }
+     * }
+     * 
+     */
 
     /*
      * TEST has 5 implementations:
