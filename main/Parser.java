@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.lang.Math; // for abs in JUMP,...
-import java.nio.file.Files;
 
 public class Parser {
     /*
@@ -74,7 +73,12 @@ public class Parser {
             "DROP", // done
 
             // extra!
-            "MAKE" // done
+            "MAKE", // done
+
+            //Imène
+            "MAKELIFO",
+            "MAKEFIFO",
+            "MAKETD"
     ));
 
     private ArrayList<String> arithmeticOperations = new ArrayList<String>(Arrays.asList("ADDI", "SUBI", "DIVI", "MULI"));
@@ -313,11 +317,11 @@ public class Parser {
         return true;
     }
 
-    public boolean setFilesContenu(String n) {
-        if (null == this.exa.getF()) {
+    public boolean addFilesContenu(String n) {
+        if (null == this.exa.getF()peek()) {
             return false;
         }
-        this.exa.getF().setContenu(n);
+        this.exa.getF().push(n);
         return true;
     }
 
@@ -357,28 +361,21 @@ public class Parser {
             n = (int) o;
         }
 
-        else if (o instanceof Files) {
-            Files f = (Files) o;
-            if (f.getIter().hasNext()) {
-                n = Integer.parseInt(f.next());
-            } else {
-                throw new IllegalArgumentException("File " + f.getNom() + " does not have next value");
-            }
-        }
-
         else if (o instanceof String) {
             String S = (String) o;
             if (S.equals("X")) {
                 n = Integer.valueOf(this.exa.getX());
             } else if (S.equals("T")) {
                 n = Integer.valueOf(this.exa.getT());
+            } else if (S.equals("F")) {
+                n = Integer.valueOf(this.exa.getF().peek());
             } else {
                 n = Integer.valueOf(S);
             }
         }
 
         else {
-            throw new IllegalArgumentException("Expected type Files/int/String");
+            throw new IllegalArgumentException("Expected type 'X'/'T'/'F'/int/String");
         }
         return n;
     }
@@ -432,7 +429,7 @@ public class Parser {
         resReg = (String) args.get(2);
         this.curline += 1;
         if (!setRegister(resReg, res)) {
-            if (!setFilesContenu(Integer.toString(res))) {
+            if (!addFilesContenu(Integer.toString(res))) {
                 throw new IllegalArgumentException("Register/file not found");
             }
         }
@@ -470,7 +467,13 @@ public class Parser {
         else if (label instanceof String) {
             String str = (String) label;
 
-            if (!(this.labels.containsKey(str))) {
+            if (str.equals("X")) {
+                n = Integer.valueOf(this.exa.getX());
+            } else if (str.equals("T")) {
+                n = Integer.valueOf(this.exa.getT());
+            } else if (str.equals("F")) {
+                n = Integer.valueOf(this.exa.getF().peek());
+            } else if (!(this.labels.containsKey(str))) {
                 throw new IllegalArgumentException("label " + str + " does not exist");
             }
             this.curline = labels.get(str);
@@ -596,7 +599,7 @@ public class Parser {
                 if (null == this.exa.getF()) {
                     throw new IllegalArgumentException("No file");
                 }
-                this.exa.setT(!this.exa.getF().getIter().hasNext() ? "1" : "0");
+                this.exa.setT(!this.exa.getF().estVide() ? "1" : "0");
                 return;
             }
 

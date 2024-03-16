@@ -5,35 +5,19 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 /*
-	nom: nom du fichier
-	contenu: le contenu du fichier en ArrayList ( apres avoir lu par le lecteur)
-	iter: iterateur du contenu
+	abstrac class fr FileFIFO, FileLIFO, FileTD
 */
-public class Files {
+public abstract class Files {
 	private String nom;
-	private ArrayList<String> contenu;
-	private Iterator<String> iter;
 
 	private int coordX;
 	private int coordY;
 
 	// constructeur
-	public Files(String nom, ArrayList<String> contenu) {
+	public File(String nom, int coordX, int coordY) {
 		this.nom = nom;
-		this.contenu = contenu;
-		this.iter = contenu.iterator();
-		this.iter = null;
-		if (contenu != null) {
-			this.iter = contenu.iterator();
-		}
-
-		this.coordX = -1;
-		this.coordY = -1;
-	}
-
-	public void setContenu(String n) {
-		this.contenu = new ArrayList<String>(Arrays.asList(n));
-		this.contenu.add(n);
+		this.coordX = coordX;
+		this.coordY = coordY;
 	}
 
 	public int getCoordX() {
@@ -55,25 +39,6 @@ public class Files {
 	// geteur nom
 	public String getNom() {
 		return this.nom;
-	}
-
-	// geteur contenu
-	public ArrayList<String> getContenu() {
-		return this.contenu;
-	}
-
-	// geteur iterateur
-	public Iterator<String> getIter() {
-		return this.iter;
-	}
-	public String next() {
-		return this.iter.next();
-	}
-
-	// mise a jour du code et l'iterateur de l'exa
-	public void update(ArrayList<String> code) {
-		this.contenu = code;
-		this.iter = code.iterator();
 	}
 
 }

@@ -9,12 +9,12 @@ package main;
 	valeurF : le Fichier que l'exas porte
 
 */
-public class Exas {
+public class Exas<F extends Files> {
 	private String nom;
 	private String code;
 	private String valeurX;
 	private String valeurT;
-	private Files valeurF;
+	private F valeurF;
 
 	private int coordX;
 	private int coordY;
@@ -77,12 +77,12 @@ public class Exas {
 	}
 
 	// redefinir la valeurT
-	public void setT(String t) {
+	public String setT(String t) {
 		this.valeurT = t;
 	}
 
 	// geteur F
-	public Files getF() {
+	public F getF() {
 		return this.valeurF;
 	}
 

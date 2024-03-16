@@ -5,12 +5,12 @@ import java.util.ArrayList;
 public class Niveau {
     private Exas exa1;
     private Exas exa2;
-    private ArrayList<Files> files;
+    private ArrayList<? extends Files> files;
     private int height;
     private int width;
     private ArrayList<Integer> positions;
 
-    public Niveau(Exas exa1, Exas exa2, ArrayList<Files> files) {
+    public Niveau(Exas exa1, Exas exa2, ArrayList<? extends Files> files) {
 
         this.files = new ArrayList<>(files);
         this.exa1 = exa1;
@@ -22,7 +22,7 @@ public class Niveau {
         saveExasStartingPositions();
     }
 
-    public Niveau(Exas exa1, Exas exa2, ArrayList<Files> files, int height, int width) {
+    public Niveau(Exas exa1, Exas exa2, ArrayList<? extends Files> files, int height, int width) {
 
         super();
         this.height = height;
@@ -80,12 +80,15 @@ public class Niveau {
         for (int i = 0; i < height; i++) {
 
             for (int j = 0; j < width; j++) {
-                for (Files f : this.files) {
-                    if (!(f.getCoordX() == i && f.getCoordY() == j)) {
-                        ArrayList<Integer> temp = new ArrayList<Integer>();
-                        temp.add(i);
-                        temp.add(j);
-                        return temp;
+                if(!((this.exa1.getCoordX == i && this.exa1.getCoordY() == j)
+                    || (this.exa2.getCoordX() == i && this.exa2.getCoordY() == j))) {                
+                    for (Files f : this.files) {
+                        if (!(f.getCoordX() == i && f.getCoordY() == j)) {
+                            ArrayList<Integer> temp = new ArrayList<Integer>();
+                            temp.add(i);
+                            temp.add(j);
+                            return temp;
+                        }
                     }
                 }
             }
