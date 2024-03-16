@@ -31,6 +31,15 @@ public class Exas {
 		this.coordY = -1;
 	}
 
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	// geteur code de l'exa
+	public String getCode() {
+		return this.code;
+	}
+
 	public int getCoordX() {
 		return this.coordX;
 	}
@@ -79,11 +88,6 @@ public class Exas {
 
 	public void setF(Files f) {
 		this.valeurF = f;
-	}
-
-	// geteut code de l'exa
-	public String getCode() {
-		return this.code;
 	}
 
 }
