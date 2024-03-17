@@ -14,17 +14,17 @@ public class FileFIFO extends Files {
     }
 
     public String VOID() {
-        return this.queue.pop();
+        return this.queue.poll();
     }
 
-    public boolean push(String s) {
-        return this.queue.push(s);
+    public void push(String s) {
+        this.queue.offer(s); // avant boolean type
     }
 
     public void SEEK(int i) {}
 
     public boolean estVide() {
-        return (this.queue.size() == 0);
+        return this.queue.isEmpty();
     }
 
     public String peek() {

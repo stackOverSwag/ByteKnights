@@ -77,7 +77,7 @@ public class Exas<F extends Files> {
 	}
 
 	// redefinir la valeurT
-	public String setT(String t) {
+	public void setT(String t) {
 		this.valeurT = t;
 	}
 
@@ -86,7 +86,7 @@ public class Exas<F extends Files> {
 		return this.valeurF;
 	}
 
-	public void setF(Files f) {
+	public void setF(F f) {
 		this.valeurF = f;
 	}
 

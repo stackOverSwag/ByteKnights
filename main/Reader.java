@@ -8,18 +8,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class Reader {
-
-  public static void main(String[] args) {
-    ArrayList<ArrayList<String>> lvl = readlvl("lvl0");
-    // System.out.println(lvl);
-
+  /*
+  public Niveau text(String[] args) {
+    
+    Niveau lvl = readlvl("lvl0");
+    
     for (ArrayList<String> salle : lvl) {
 
       ArrayList<String> forma = new ArrayList<String>(); // set forma
       forma.add(salle.get(1));
       forma.add(salle.get(2));
       Hosts host = new Hosts(forma, Integer.parseInt(salle.get(0))); // creat host
-
+      //Nivau host = new Hosts(forma, Integer.parseInt(salle.get(0))); 
       int i = 3;
 
       while (isInteger(salle.get(i)) && i + 4 < salle.size()) { // set links
@@ -56,7 +56,7 @@ public class Reader {
       return false;
     }
   }
-
+  /* 
   public static ArrayList<ArrayList<String>> readlvl(String name) {
     try (BufferedReader reader = new BufferedReader(new FileReader("./niveaux/" + name))) {
 
@@ -84,6 +84,70 @@ public class Reader {
       System.out.print("catch");
     }
     return null;
+  }
+
+      //fList.add(new Files(line.get(index+1), data(line.get(index+4))));
+      //fList.get((index-9)/5).setCoordX(Integer.parseInt(line.get(index + 2)));
+      //fList.get((index-9)/5).setCoordY(Integer.parseInt(line.get(index + 3)));
+      //fList.get((index-9)/9).setType(get(index)); --> Pas encore fait
+  */
+   
+  public Niveau readlvl(String name) {
+    try (BufferedReader reader = new BufferedReader(new FileReader("./niveaux/" + name))){
+    ArrayList<String> niveau = new ArrayList<String>();
+    niveau.addAll(Arrays.asList(reader.readLine().split(",")));
+    
+    int h = Integer.parseInt(niveau.get(0));
+    int w = Integer.parseInt(niveau.get(1));
+
+    Exas exa1 = exa(niveau,3);
+    Exas exa2 = exa(niveau,6);
+
+    ArrayList<Files> fList = ficher(niveau,9);
+    
+    return new Niveau(exa1, exa2, fList);
+    }catch (IOException e) {
+      System.out.print("Erreur dans la lecture du niveau");
+    }
+    return null;
+  }
+
+  public Exas exa(ArrayList<String> line, int index){
+    Exas exa = new Exas(line.get(index));
+    exa.setCoordX(Integer.parseInt(line.get(index + 1)));
+    exa.setCoordY(Integer.parseInt(line.get(index + 2)));
+    return exa;
+  }
+
+  public ArrayList<Files> ficher(ArrayList<String> line, int index){
+
+    ArrayList<Files> fList = new ArrayList<>();
+    
+    for(;index<line.size();index+=5){
+
+      String[] data = line.get(index+4).split(" ");
+      switch(line.get(index)){
+        case "FIFO":
+          FileFIFO fifo = new FileFIFO(line.get(index + 1), Integer.parseInt(line.get(index + 2)), Integer.parseInt(line.get(index + 3)));
+          for(String val : data)
+            fifo.push(val);
+          fList.add(fifo);
+          break;
+        case "LIFO":
+          FileLIFO lifo = new FileLIFO(line.get(index + 1), Integer.parseInt(line.get(index + 2)), Integer.parseInt(line.get(index + 3)));
+          for(String val : data)
+            lifo.push(val);
+          fList.add(lifo);
+          break;
+        case "TD":
+          FileTD td = new FileTD(line.get(index + 1), Integer.parseInt(line.get(index + 2)), Integer.parseInt(line.get(index + 3)));
+          for(String val : data)
+            td.push(val);
+          fList.add(td);
+          break;
+      }
+    }
+    return fList;
   }
 
 }

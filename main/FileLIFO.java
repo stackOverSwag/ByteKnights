@@ -17,14 +17,14 @@ public class FileLIFO extends Files {
         return this.stack.pop();
     }
 
-    public boolean push(String s) {
-        return this.stack.push(s);
+    public void push(String s) {
+        this.stack.push(s); //avant type bool
     }
 
     public void SEEK(int i) {}
 
     public boolean estVide() {
-        return (this.stack.size() == 0);
+        return this.stack.isEmpty();
     }
 
     public String peek() {
