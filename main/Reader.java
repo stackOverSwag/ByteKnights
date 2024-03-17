@@ -105,7 +105,7 @@ public class Reader {
 
     ArrayList<Files> fList = ficher(niveau,9);
     
-    return new Niveau(exa1, exa2, fList);
+    return new Niveau(exa1, exa2, fList, h, w);
     }catch (IOException e) {
       System.out.print("Erreur dans la lecture du niveau");
     }
