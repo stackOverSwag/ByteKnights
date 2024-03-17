@@ -78,7 +78,9 @@ public class Parser {
             //Imène
             "MAKELIFO",
             "MAKEFIFO",
-            "MAKETD"
+            "MAKETD",
+
+            "NOOP"
     ));
 
     private ArrayList<String> arithmeticOperations = new ArrayList<String>(Arrays.asList("ADDI", "SUBI", "DIVI", "MULI"));
@@ -234,6 +236,9 @@ public class Parser {
              * which needs to be caught by Game class.
              */
             resolveArithmetic(line, firstElem);
+            this.curline += 1;
+        }
+        else if (checkCommand(line, "NOOP")) {
             this.curline += 1;
         }
 
