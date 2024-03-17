@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Niveau {
     private Exas exa1;
     private Exas exa2;
-    private ArrayList<? extends Files> files;
+    private ArrayList<Files> files;
     private int height;
     private int width;
     private ArrayList<Integer> positions;
@@ -22,7 +22,7 @@ public class Niveau {
         saveExasStartingPositions();
     }
 
-    public Niveau(Exas exa1, Exas exa2, ArrayList<? extends Files> files, int height, int width) {
+    public Niveau(Exas exa1, Exas exa2, ArrayList<Files> files, int height, int width) {
 
         super();
         this.height = height;
@@ -80,7 +80,7 @@ public class Niveau {
         for (int i = 0; i < height; i++) {
 
             for (int j = 0; j < width; j++) {
-                if(!((this.exa1.getCoordX == i && this.exa1.getCoordY() == j)
+                if(!((this.exa1.getCoordX() == i && this.exa1.getCoordY() == j)
                     || (this.exa2.getCoordX() == i && this.exa2.getCoordY() == j))) {                
                     for (Files f : this.files) {
                         if (!(f.getCoordX() == i && f.getCoordY() == j)) {

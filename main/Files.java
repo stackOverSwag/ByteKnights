@@ -7,14 +7,14 @@ import java.util.Iterator;
 /*
 	abstrac class fr FileFIFO, FileLIFO, FileTD
 */
-public abstract class Files {
+public abstract class Files<F> {
 	private String nom;
 
 	private int coordX;
 	private int coordY;
 
 	// constructeur
-	public File(String nom, int coordX, int coordY) {
+	public Files(String nom, int coordX, int coordY) {
 		this.nom = nom;
 		this.coordX = coordX;
 		this.coordY = coordY;

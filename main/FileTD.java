@@ -23,7 +23,7 @@ public class FileTD extends Files {
         return "";
     }
 
-    public boolean push(String s) {
+    public void push(String s) { //Anciennement boolean
         this.tab.add(s);
         this.index++;
         this.lastAdded = this.index;
