@@ -145,7 +145,7 @@ public class Reader {
             td.push(val);
           fList.add(td);
           break;
-      } default:
+        default:
           throw new IllegalArgumentException("Level expected Files types FIFO/LIFO/TD, instead got: " + line.get(index));
       }
     }
