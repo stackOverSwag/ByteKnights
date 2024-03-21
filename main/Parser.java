@@ -323,7 +323,7 @@ public class Parser {
     }
 
     public boolean addFilesContenu(String n) {
-        if (null == this.exa.getF()peek()) {
+        if (null == this.exa.getF().peek()) {
             return false;
         }
         this.exa.getF().push(n);
